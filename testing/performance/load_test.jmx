@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="DemoPatientPortal Performance Test" enabled="true">
+      <stringProp name="TestPlan.comments">3 Test Cases for Performance</stringProp>
+    </TestPlan>
+    <hashTree>
+      <!-- TEST CASE 1: Concurrent Login Load (50 Users) -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TC1: Concurrent Login" enabled="true">
+        <intProp name="ThreadGroup.num_threads">50</intProp>
+        <intProp name="ThreadGroup.ramp_time">10</intProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Login Request" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="email" elementType="HTTPArgument"><stringProp name="Argument.value">john.smith@email.com</stringProp></elementProp>
+              <elementProp name="password" elementType="HTTPArgument"><stringProp name="Argument.value">password123</stringProp></elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">5000</stringProp>
+          <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+        </HTTPSamplerProxy>
+      </hashTree>
+
+      <!-- TEST CASE 2: Message Retrieval Latency -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TC2: Message Retrieval" enabled="true">
+        <intProp name="ThreadGroup.num_threads">20</intProp>
+        <intProp name="ThreadGroup.ramp_time">5</intProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Conversations" enabled="true">
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">5000</stringProp>
+          <stringProp name="HTTPSampler.path">/api/messages/conversations</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+        </HTTPSamplerProxy>
+      </hashTree>
+
+      <!-- TEST CASE 3: Stress Test - Rapid Messaging -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TC3: Rapid Messaging Stress" enabled="true">
+        <intProp name="ThreadGroup.num_threads">100</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Send Message Stress" enabled="true">
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">5000</stringProp>
+          <stringProp name="HTTPSampler.path">/api/messages/1/send</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+        </HTTPSamplerProxy>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

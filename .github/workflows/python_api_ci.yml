@@ -1,0 +1,57 @@
+name: Python API CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  api-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # --- Setup Node.js for Backend ---
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Backend Dependencies
+      run: |
+        cd backend
+        npm install
+
+    # --- Setup Python for Test Script ---
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install Python Dependencies (requests)
+      run: pip install requests
+
+    # --- Start Backend Server ---
+    - name: Start Backend Server (in background)
+      run: |
+        cd backend
+        # Assuming your backend starts with 'npm start' and runs on port 5000
+        npm start &
+      # The '&' runs the server in the background so the workflow can continue
+
+    # --- Wait for Backend to be Ready ---
+    # This step ensures the server is fully booted before the test runs
+    - name: Wait for Backend (Port 5000)
+      uses: nev7n/wait_for_port@v1
+      with:
+        port: 5000
+        timeout: 60 # Wait up to 60 seconds for the server to start
+
+    # --- Run Python API Tests ---
+    - name: Run Python API Tests
+      run: |
+        # Assuming api_tests.py is in the testing/unit folder
+        python testing/unit/api_tests.py
