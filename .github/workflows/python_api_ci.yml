@@ -31,27 +31,31 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install Python Dependencies (requests)
+    - name: Install Python Dependencies
       run: pip install requests
 
     # --- Start Backend Server ---
-    - name: Start Backend Server (in background)
+    - name: Start Backend Server
       run: |
         cd backend
-        # Assuming your backend starts with 'npm start' and runs on port 5000
         npm start &
-      # The '&' runs the server in the background so the workflow can continue
+        echo $! > backend.pid
 
-    # --- Wait for Backend to be Ready ---
-    # This step ensures the server is fully booted before the test runs
-    - name: Wait for Backend (Port 5000)
-      uses: nev7n/wait_for_port@v1
-      with:
-        port: 5000
-        timeout: 60 # Wait up to 60 seconds for the server to start
+    # --- Wait for Backend (Using a simple loop) ---
+    - name: Wait for Backend to be Ready
+      run: |
+        echo "Waiting for backend on port 5000..."
+        for i in {1..30}; do
+          if curl -s http://localhost:5000 > /dev/null; then
+            echo "Backend is ready!"
+            exit 0
+          fi
+          echo "Attempt $i: Backend not ready yet, waiting..."
+          sleep 2
+        done
+        echo "Backend failed to start within 60 seconds"
+        exit 1
 
     # --- Run Python API Tests ---
     - name: Run Python API Tests
-      run: |
-        # Assuming api_tests.py is in the testing/unit folder
-        python testing/unit/api_tests.py
+      run: python testing/unit/api_tests.py
